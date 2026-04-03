@@ -185,9 +185,31 @@ Every trade attempt is logged to `trades.json`:
 
 3. **Liquidity:** Small markets may have wide spreads. The bot skips markets
    with less than $1k liquidity by default.
+   
+   # Arbitrage Weather Betting Tool
 
-4. **Not financial advice:** This is a research tool. Weather prediction has edge
+An automated arbitrage tool that identifies and analyzes betting 
+opportunities across weather-based prediction markets. Built to 
+find pricing discrepancies across platforms that can be exploited 
+for low-risk returns.
+
+## What it does
+- Monitors weather-based betting markets across multiple platforms
+- Identifies arbitrage opportunities where odds discrepancies exist
+- Calculates optimal stake distribution to lock in guaranteed returns
+- Delivers real-time alerts when actionable opportunities are found
+
+## Why I built it
+Arbitrage opportunities in prediction markets are time-sensitive and 
+hard to spot manually. This tool automates the analysis so opportunities 
+are caught and evaluated instantly.
+
+## Tech & Tools
+- Built using Perplexity with Claude Code
+- Real-time market data integration
+
+5. **Not financial advice:** This is a research tool. Weather prediction has edge
    but is not guaranteed. Never bet more than you can afford to lose.
 
-5. **Rate limits:** Polymarket allows 100 req/min (public) and 60 orders/min.
+6. **Rate limits:** Polymarket allows 100 req/min (public) and 60 orders/min.
    The bot scans at most once per hour, well within limits.

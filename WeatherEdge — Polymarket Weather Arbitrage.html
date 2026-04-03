@@ -1,0 +1,2734 @@
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+
+<!-- Perplexity Computer Attribution — SEO Meta Tags -->
+<meta name="generator" content="Perplexity Computer">
+<meta name="author" content="Perplexity Computer">
+<meta property="og:see_also" content="https://www.perplexity.ai/computer">
+<link rel="author" href="https://www.perplexity.ai/computer">
+
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WeatherEdge — Polymarket Weather Arbitrage</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ======= RESET & BASE ======= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+
+    :root {
+      --font-body: 'General Sans', 'Helvetica Neue', sans-serif;
+      --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+
+      /* Dark trading palette — cool slate + teal accent */
+      --bg-0: #0b0e11;
+      --bg-1: #0f1318;
+      --bg-2: #151a21;
+      --bg-3: #1b222b;
+      --bg-4: #222b36;
+      --border: #2a3444;
+      --border-subtle: rgba(255,255,255,0.06);
+
+      --text-primary: #e1e4e8;
+      --text-secondary: #8b95a5;
+      --text-faint: #555f6e;
+      --text-inverse: #0b0e11;
+
+      --accent: #4f98a3;
+      --accent-hover: #3d8591;
+      --green: #34d399;
+      --green-dim: rgba(52, 211, 153, 0.12);
+      --green-mid: rgba(52, 211, 153, 0.25);
+      --red: #f87171;
+      --red-dim: rgba(248, 113, 113, 0.12);
+      --red-mid: rgba(248, 113, 113, 0.25);
+      --yellow: #fbbf24;
+      --yellow-dim: rgba(251, 191, 36, 0.12);
+      --purple: #a86fdf;
+      --purple-dim: rgba(168, 111, 223, 0.12);
+      --blue: #5591c7;
+      --blue-dim: rgba(85, 145, 199, 0.12);
+
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+
+      --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+
+      --text-xs: 0.75rem;
+      --text-sm: 0.8125rem;
+      --text-base: 0.875rem;
+      --text-lg: 1rem;
+      --text-xl: 1.25rem;
+    }
+
+    body {
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      color: var(--text-primary);
+      background: var(--bg-0);
+      line-height: 1.5;
+      min-height: 100dvh;
+    }
+
+    /* ======= LAYOUT ======= */
+    .app {
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      background: var(--bg-1);
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-group svg {
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+    }
+
+    .logo-sub {
+      font-size: var(--text-xs);
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    main {
+      flex: 1;
+      padding: 20px 24px 24px;
+      overflow-y: auto;
+    }
+
+    /* ======= CONTROLS ======= */
+    .controls-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .control-group label {
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    select {
+      appearance: none;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      padding: 8px 32px 8px 12px;
+      cursor: pointer;
+      transition: border-color var(--transition);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b95a5' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+
+    select:hover, select:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    .btn-fetch {
+      background: var(--accent);
+      color: var(--text-inverse);
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      padding: 8px 20px;
+      cursor: pointer;
+      transition: background var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-fetch:hover { background: var(--accent-hover); }
+    .btn-fetch:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-fetch.loading {
+      position: relative;
+      color: transparent;
+    }
+
+    .btn-fetch.loading::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ======= TAB SWITCHER ======= */
+    .mode-tabs {
+      display: flex;
+      gap: 2px;
+      background: var(--bg-2);
+      border-radius: var(--radius-md);
+      padding: 2px;
+      margin-bottom: 20px;
+      width: fit-content;
+    }
+
+    .mode-tab {
+      padding: 6px 16px;
+      font-size: var(--text-sm);
+      font-weight: 500;
+      font-family: var(--font-body);
+      color: var(--text-secondary);
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .mode-tab:hover {
+      color: var(--text-primary);
+    }
+
+    .mode-tab.active {
+      background: var(--bg-4);
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* ======= GRID ======= */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--bg-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .panel-title {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .panel-badge {
+      font-size: var(--text-xs);
+      font-family: var(--font-mono);
+      color: var(--text-faint);
+      background: var(--bg-3);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+
+    /* Forecast panel spans full width */
+    .panel-forecast {
+      grid-column: 1 / -1;
+    }
+
+    /* ======= FORECAST TABLE ======= */
+    .forecast-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--text-sm);
+    }
+
+    .forecast-table th {
+      text-align: left;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 6px 12px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .forecast-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-variant-numeric: tabular-nums lining-nums;
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--text-primary);
+    }
+
+    .forecast-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .forecast-table tr:hover td {
+      background: var(--bg-2);
+    }
+
+    .forecast-table .tomorrow-row td {
+      background: rgba(79, 152, 163, 0.08);
+      font-weight: 600;
+    }
+
+    .forecast-table .tomorrow-row:hover td {
+      background: rgba(79, 152, 163, 0.14);
+    }
+
+    .day-label {
+      font-family: var(--font-body);
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .tomorrow-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-family: var(--font-body);
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(79, 152, 163, 0.15);
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-left: 6px;
+      vertical-align: middle;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .weather-icon {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+
+    /* ======= MARKET PANEL ======= */
+    .market-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .market-question {
+      font-size: var(--text-base);
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.4;
+    }
+
+    .market-prices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .price-card {
+      background: var(--bg-2);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
+    }
+
+    .price-label {
+      font-size: var(--text-xs);
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+
+    .price-value {
+      font-family: var(--font-mono);
+      font-size: var(--text-xl);
+      font-weight: 700;
+    }
+
+    .price-yes { color: var(--green); }
+    .price-no { color: var(--red); }
+
+    .market-meta {
+      display: flex;
+      gap: 16px;
+      font-size: var(--text-xs);
+      color: var(--text-faint);
+    }
+
+    .market-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ======= ANALYSIS PANEL ======= */
+    .analysis-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .metric-label {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+
+    .metric-value {
+      font-family: var(--font-mono);
+      font-size: var(--text-lg);
+      font-weight: 600;
+    }
+
+    .metric-value.positive { color: var(--green); }
+    .metric-value.negative { color: var(--red); }
+    .metric-value.neutral { color: var(--yellow); }
+
+    .divider {
+      height: 1px;
+      background: var(--border-subtle);
+    }
+
+    /* ======= SIGNAL PANEL ======= */
+    .signal-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      padding: 8px 0;
+    }
+
+    .signal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: var(--text-xl);
+      font-weight: 700;
+      padding: 10px 28px;
+      border-radius: var(--radius-lg);
+      letter-spacing: 0.04em;
+    }
+
+    .signal-badge.bet {
+      color: var(--green);
+      background: var(--green-dim);
+      border: 1px solid var(--green-mid);
+    }
+
+    .signal-badge.no-bet {
+      color: var(--red);
+      background: var(--red-dim);
+      border: 1px solid var(--red-mid);
+    }
+
+    .signal-badge.skip {
+      color: var(--yellow);
+      background: var(--yellow-dim);
+      border: 1px solid rgba(251, 191, 36, 0.25);
+    }
+
+    .signal-explanation {
+      font-size: var(--text-xs);
+      color: var(--text-faint);
+      max-width: 280px;
+      line-height: 1.5;
+    }
+
+    .kelly-box {
+      width: 100%;
+      background: var(--bg-2);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .kelly-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: var(--text-sm);
+    }
+
+    .kelly-label {
+      color: var(--text-secondary);
+    }
+
+    .kelly-value {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: var(--text-sm);
+    }
+
+    .kelly-bet-amount {
+      font-family: var(--font-mono);
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    /* ======= EMPTY / LOADING STATE ======= */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-faint);
+      gap: 8px;
+    }
+
+    .empty-state svg {
+      opacity: 0.3;
+      margin-bottom: 4px;
+    }
+
+    .empty-state p {
+      font-size: var(--text-sm);
+    }
+
+    /* ======= PROBABILITY BAR ======= */
+    .prob-bar-container {
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    .prob-bar-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--text-xs);
+      color: var(--text-faint);
+      margin-bottom: 4px;
+    }
+
+    .prob-bar-track {
+      width: 100%;
+      height: 6px;
+      background: var(--bg-3);
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .prob-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease, background 0.3s ease;
+    }
+
+    .prob-bar-fill.high { background: var(--green); }
+    .prob-bar-fill.medium { background: var(--yellow); }
+    .prob-bar-fill.low { background: var(--red); }
+
+    /* ======= EDGE VISUAL BAR ======= */
+    .edge-bar-container {
+      width: 100%;
+    }
+
+    .edge-bar-track {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-3);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .edge-bar-center {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: var(--text-faint);
+    }
+
+    .edge-bar-fill {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      border-radius: 4px;
+      transition: all 0.5s ease;
+    }
+
+    .edge-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-faint);
+    }
+
+    /* ======= CONSENSUS PANEL ======= */
+    .panel-consensus {
+      grid-column: 1 / -1;
+    }
+
+    .consensus-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .model-card {
+      background: var(--bg-2);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+    }
+
+    .model-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .model-icon {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      flex-shrink: 0;
+    }
+
+    .model-icon.forecast { background: rgba(79, 152, 163, 0.15); color: var(--accent); }
+    .model-icon.climate  { background: rgba(251, 191, 36, 0.12); color: var(--yellow); }
+    .model-icon.composite { background: rgba(168, 111, 223, 0.12); color: #a86fdf; }
+    .model-icon.nws { background: rgba(85, 145, 199, 0.12); color: var(--blue); }
+
+    .model-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .model-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .model-name {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .model-desc {
+      font-size: 11px;
+      color: var(--text-faint);
+      line-height: 1.3;
+    }
+
+    .model-prob-value {
+      font-family: var(--font-mono);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+
+    .model-prob-bar {
+      width: 100%;
+      height: 4px;
+      background: var(--bg-4);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .model-prob-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+
+    .model-prob-bar-fill.forecast-fill { background: var(--accent); }
+    .model-prob-bar-fill.climate-fill  { background: var(--yellow); }
+    .model-prob-bar-fill.composite-fill { background: #a86fdf; }
+    .model-prob-bar-fill.nws-fill { background: var(--blue); }
+
+    /* Consensus footer row */
+    .consensus-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-subtle);
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .consensus-stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+    }
+
+    .consensus-stat .stat-value {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: var(--text-sm);
+      color: var(--text-primary);
+    }
+
+    .disagreement-flag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+    }
+
+    .disagreement-flag.aligned {
+      color: var(--green);
+      background: var(--green-dim);
+      border: 1px solid var(--green-mid);
+    }
+
+    .disagreement-flag.divergent {
+      color: var(--yellow);
+      background: var(--yellow-dim);
+      border: 1px solid rgba(251, 191, 36, 0.25);
+    }
+
+    .disagreement-flag svg {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+
+    /* ======= TEMPERATURE BRACKET MARKET ======= */
+    .panel-temp-market {
+      grid-column: 1 / -1;
+    }
+
+    .temp-market-header-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 12px;
+    }
+
+    .temp-market-title {
+      font-size: var(--text-base);
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.4;
+    }
+
+    .temp-market-subtitle {
+      font-size: var(--text-xs);
+      color: var(--text-faint);
+      margin-top: 2px;
+    }
+
+    .day-selector {
+      display: flex;
+      gap: 2px;
+      background: var(--bg-2);
+      border-radius: var(--radius-sm);
+      padding: 2px;
+    }
+
+    .day-btn {
+      padding: 4px 10px;
+      font-size: var(--text-xs);
+      font-weight: 500;
+      font-family: var(--font-body);
+      color: var(--text-faint);
+      background: transparent;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .day-btn:hover {
+      color: var(--text-secondary);
+    }
+
+    .day-btn.active {
+      background: var(--bg-4);
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .bracket-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 0 -16px;
+      padding: 0 16px;
+    }
+
+    /* Bracket table */
+    .bracket-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--text-sm);
+    }
+
+    .bracket-table th {
+      text-align: left;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 6px 10px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .bracket-table th.align-right {
+      text-align: right;
+    }
+
+    .bracket-table td {
+      padding: 5px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-variant-numeric: tabular-nums lining-nums;
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+
+    .bracket-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .bracket-table tr:hover td {
+      background: var(--bg-2);
+    }
+
+    .bracket-table tr.best-bracket td {
+      background: rgba(52, 211, 153, 0.06);
+    }
+
+    .bracket-table tr.best-bracket:hover td {
+      background: rgba(52, 211, 153, 0.1);
+    }
+
+    .bracket-range {
+      font-family: var(--font-body);
+      font-weight: 500;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .best-tag {
+      display: inline-block;
+      font-size: 9px;
+      font-family: var(--font-body);
+      font-weight: 700;
+      color: var(--green);
+      background: var(--green-dim);
+      border: 1px solid var(--green-mid);
+      padding: 1px 5px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .td-right {
+      text-align: right;
+    }
+
+    /* Prob distribution bar in table */
+    .prob-dist-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .prob-dist-track {
+      flex: 1;
+      height: 5px;
+      background: var(--bg-3);
+      border-radius: 3px;
+      overflow: hidden;
+      min-width: 40px;
+    }
+
+    .prob-dist-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--accent);
+      transition: width 0.4s ease;
+    }
+
+    .prob-dist-fill.model {
+      background: var(--accent);
+    }
+
+    .prob-dist-fill.market {
+      background: var(--yellow);
+    }
+
+    .prob-dist-pct {
+      font-size: var(--text-xs);
+      min-width: 38px;
+      text-align: right;
+    }
+
+    /* Edge cell coloring — higher specificity to override .bracket-table td */
+    .bracket-table td.edge-positive { color: var(--green); }
+    .bracket-table td.edge-negative { color: var(--red); }
+    .bracket-table td.edge-neutral { color: var(--text-faint); }
+
+    /* Temperature bracket summary panel */
+    .temp-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .temp-summary-card {
+      background: var(--bg-2);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
+    }
+
+    .temp-summary-label {
+      font-size: var(--text-xs);
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+
+    .temp-summary-value {
+      font-family: var(--font-mono);
+      font-size: var(--text-lg);
+      font-weight: 700;
+    }
+
+    .temp-summary-sub {
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-top: 2px;
+    }
+
+    /* Bracket signal + Kelly in the bottom row */
+    .temp-bet-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .temp-signal-box {
+      background: var(--bg-2);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+    }
+
+    .temp-signal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: var(--text-lg);
+      font-weight: 700;
+      padding: 8px 20px;
+      border-radius: var(--radius-md);
+      letter-spacing: 0.04em;
+    }
+
+    .temp-signal-badge.bet {
+      color: var(--green);
+      background: var(--green-dim);
+      border: 1px solid var(--green-mid);
+    }
+
+    .temp-signal-badge.no-bet {
+      color: var(--text-faint);
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+    }
+
+    .temp-signal-detail {
+      font-size: var(--text-xs);
+      color: var(--text-faint);
+      line-height: 1.5;
+    }
+
+    /* Hidden panels */
+    .hidden {
+      display: none !important;
+    }
+
+    /* ======= HOURLY PRECIP CHART ======= */
+    .hourly-chart-panel {
+      grid-column: 1 / -1;
+    }
+
+    .hourly-chart-container {
+      padding: 4px 0;
+    }
+
+    .hourly-chart-container svg {
+      width: 100%;
+      display: block;
+    }
+
+    /* ======= LOADING SPINNER (inline) ======= */
+    .inline-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    .model-loading-text {
+      font-size: var(--text-xs);
+      color: var(--text-faint);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ======= FOOTER ======= */
+    footer {
+      padding: 12px 24px;
+      text-align: center;
+      font-size: var(--text-xs);
+      color: var(--text-faint);
+      border-top: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+
+    footer a {
+      color: var(--text-faint);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+
+    footer a:hover {
+      color: var(--text-secondary);
+    }
+
+    /* ======= RESPONSIVE ======= */
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .controls-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      select, .btn-fetch { width: 100%; }
+
+      header {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+      }
+
+      .consensus-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .temp-summary {
+        grid-template-columns: 1fr;
+      }
+
+      .temp-bet-row {
+        grid-template-columns: 1fr;
+      }
+
+      .temp-market-header-row {
+        flex-direction: column;
+      }
+
+      .bracket-table {
+        min-width: 560px;
+      }
+
+      .mode-tabs {
+        width: 100%;
+      }
+
+      .mode-tab {
+        flex: 1;
+        text-align: center;
+      }
+    }
+
+    /* ======= ANIMATIONS ======= */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="logo-group">
+        <!-- Inline SVG logo: stylized W + bar chart motif -->
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-label="WeatherEdge logo">
+          <rect x="1" y="1" width="26" height="26" rx="5" stroke="#4f98a3" stroke-width="1.5" fill="none"/>
+          <path d="M6 18 L10 10 L14 16 L18 8 L22 14" stroke="#4f98a3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="22" cy="14" r="2" fill="#34d399"/>
+        </svg>
+        <div>
+          <div class="logo-text">WeatherEdge</div>
+          <div class="logo-sub">Polymarket Arbitrage</div>
+        </div>
+      </div>
+      <div class="header-status">
+        <span class="status-dot"></span>
+        <span>Open-Meteo + NWS Live</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- Controls -->
+      <div class="controls-row">
+        <div class="control-group">
+          <label for="city-select">City</label>
+          <select id="city-select" data-testid="select-city">
+            <option value="new-york">New York</option>
+            <option value="chicago">Chicago</option>
+            <option value="miami">Miami</option>
+            <option value="seattle">Seattle</option>
+            <option value="denver">Denver</option>
+            <option value="los-angeles">Los Angeles</option>
+            <option value="houston">Houston</option>
+            <option value="phoenix">Phoenix</option>
+            <option value="boston">Boston</option>
+            <option value="las-vegas">Las Vegas</option>
+            <option value="dallas">Dallas</option>
+            <option value="atlanta">Atlanta</option>
+            <option value="minneapolis">Minneapolis</option>
+            <option value="portland">Portland</option>
+            <option value="kansas-city">Kansas City</option>
+          </select>
+        </div>
+        <div class="control-group" id="event-group">
+          <label for="event-select">Event Type</label>
+          <select id="event-select" data-testid="select-event">
+            <option value="rain">Rain</option>
+            <option value="snow">Snow</option>
+            <option value="storm">Storm</option>
+            <option value="heat">Heat Wave</option>
+          </select>
+        </div>
+        <button class="btn-fetch" id="fetch-btn" data-testid="button-fetch">Analyze Market</button>
+      </div>
+
+      <!-- Mode tabs -->
+      <div class="mode-tabs" id="mode-tabs">
+        <button class="mode-tab active" data-mode="event" data-testid="tab-event">Event Market</button>
+        <button class="mode-tab" data-mode="temp" data-testid="tab-temp">Temperature Brackets</button>
+      </div>
+
+      <!-- ========= EVENT MARKET VIEW ========= -->
+      <div id="event-view">
+        <div class="dashboard-grid" id="dashboard-grid">
+          <!-- Forecast Table (full width) -->
+          <div class="panel panel-forecast">
+            <div class="panel-header">
+              <span class="panel-title">7-Day Forecast</span>
+              <span class="panel-badge" id="forecast-city-badge">—</span>
+            </div>
+            <div class="panel-body" id="forecast-body">
+              <div class="empty-state">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                </svg>
+                <p>Select a city and event type, then click Analyze Market.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hourly Precip Chart (full width) -->
+          <div class="panel hourly-chart-panel" id="hourly-chart-panel" style="display:none;">
+            <div class="panel-header">
+              <span class="panel-title">Tomorrow's Hourly Precipitation Probability</span>
+              <span class="panel-badge" id="hourly-chart-badge">—</span>
+            </div>
+            <div class="panel-body" id="hourly-chart-body">
+              <div class="hourly-chart-container" id="hourly-chart-container"></div>
+            </div>
+          </div>
+
+          <!-- Consensus Panel (full width) -->
+          <div class="panel panel-consensus" id="consensus-panel">
+            <div class="panel-header">
+              <span class="panel-title">Model Consensus</span>
+              <span class="panel-badge" id="consensus-event-badge">—</span>
+            </div>
+            <div class="panel-body" id="consensus-body">
+              <div class="empty-state">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <p>Four model estimates appear after analysis.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mock Market Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Market</span>
+              <span class="panel-badge">MOCK</span>
+            </div>
+            <div class="panel-body" id="market-body">
+              <div class="empty-state">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                </svg>
+                <p>Market data appears after analysis.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Analysis Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Analysis</span>
+              <span class="panel-badge" id="analysis-event-badge">—</span>
+            </div>
+            <div class="panel-body" id="analysis-body">
+              <div class="empty-state">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M12 20V10M18 20V4M6 20v-4"/>
+                </svg>
+                <p>Edge and bet sizing appear after analysis.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========= TEMPERATURE BRACKET VIEW ========= -->
+      <div id="temp-view" class="hidden">
+        <div class="dashboard-grid">
+          <!-- Forecast Table (full width, shared) -->
+          <div class="panel panel-forecast">
+            <div class="panel-header">
+              <span class="panel-title">7-Day Forecast</span>
+              <span class="panel-badge" id="temp-forecast-badge">—</span>
+            </div>
+            <div class="panel-body" id="temp-forecast-body">
+              <div class="empty-state">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                </svg>
+                <p>Select a city, then click Analyze Market to see temperature brackets.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Temperature Bracket Market (full width) -->
+          <div class="panel panel-temp-market">
+            <div class="panel-header">
+              <span class="panel-title">Temperature Bracket Market</span>
+              <span class="panel-badge">MOCK</span>
+            </div>
+            <div class="panel-body" id="temp-market-body">
+              <div class="empty-state">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+                </svg>
+                <p>Temperature bracket probabilities and market prices appear after analysis.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">Created with Perplexity Computer</a>
+      <span> · Forecast data from Open-Meteo + NWS/NOAA · Mock market for demonstration only</span>
+    </footer>
+  </div>
+
+  <script>
+    // ======= CITY DATA (15 cities with NWS grid coordinates) =======
+    const CITIES = {
+      'new-york':     { name: 'New York',      lat: 40.7128,  lon: -74.0060,  nws: 'OKX/33/35' },
+      'chicago':      { name: 'Chicago',       lat: 41.8781,  lon: -87.6298,  nws: 'LOT/76/73' },
+      'miami':        { name: 'Miami',         lat: 25.7617,  lon: -80.1918,  nws: 'MFL/110/50' },
+      'seattle':      { name: 'Seattle',       lat: 47.6062,  lon: -122.3321, nws: 'SEW/125/68' },
+      'denver':       { name: 'Denver',        lat: 39.7392,  lon: -104.9903, nws: 'BOU/63/62' },
+      'los-angeles':  { name: 'Los Angeles',   lat: 34.0522,  lon: -118.2437, nws: 'LOX/155/45' },
+      'houston':      { name: 'Houston',       lat: 29.7604,  lon: -95.3698,  nws: 'HGX/63/95' },
+      'phoenix':      { name: 'Phoenix',       lat: 33.4484,  lon: -112.074,  nws: 'PSR/159/58' },
+      'boston':        { name: 'Boston',        lat: 42.3601,  lon: -71.0589,  nws: 'BOX/71/90' },
+      'las-vegas':    { name: 'Las Vegas',     lat: 36.1699,  lon: -115.1398, nws: 'VEF/123/98' },
+      'dallas':       { name: 'Dallas',        lat: 32.7767,  lon: -96.797,   nws: 'FWD/89/104' },
+      'atlanta':      { name: 'Atlanta',       lat: 33.749,   lon: -84.388,   nws: 'FFC/51/87' },
+      'minneapolis':  { name: 'Minneapolis',   lat: 44.9778,  lon: -93.265,   nws: 'MPX/108/72' },
+      'portland':     { name: 'Portland',      lat: 45.5231,  lon: -122.6765, nws: 'PQR/113/104' },
+      'kansas-city':  { name: 'Kansas City',   lat: 39.0997,  lon: -94.5786,  nws: 'EAX/44/51' },
+    };
+
+    // ======= STATE =======
+    let currentMode = 'event'; // 'event' | 'temp'
+    let cachedForecastData = null;
+    let selectedTempDayIndex = 1; // default tomorrow
+    let cachedNWSData = null;
+    let cachedHistoricalData = null;
+
+    // ======= WMO WEATHER CODE MAPPING =======
+    const WMO_CODES = {
+      0: { label: 'Clear',             icon: '☀️' },
+      1: { label: 'Mostly Clear',      icon: '🌤' },
+      2: { label: 'Partly Cloudy',     icon: '⛅' },
+      3: { label: 'Overcast',          icon: '☁️' },
+      45:{ label: 'Fog',               icon: '🌫' },
+      48:{ label: 'Rime Fog',          icon: '🌫' },
+      51:{ label: 'Light Drizzle',     icon: '🌦' },
+      53:{ label: 'Moderate Drizzle',  icon: '🌦' },
+      55:{ label: 'Dense Drizzle',     icon: '🌧' },
+      61:{ label: 'Light Rain',        icon: '🌧' },
+      63:{ label: 'Moderate Rain',     icon: '🌧' },
+      65:{ label: 'Heavy Rain',        icon: '🌧' },
+      66:{ label: 'Freezing Rain',     icon: '🌧' },
+      67:{ label: 'Heavy Freezing Rain',icon: '🌧' },
+      71:{ label: 'Light Snow',        icon: '🌨' },
+      73:{ label: 'Moderate Snow',     icon: '🌨' },
+      75:{ label: 'Heavy Snow',        icon: '❄️' },
+      77:{ label: 'Snow Grains',       icon: '❄️' },
+      80:{ label: 'Light Showers',     icon: '🌦' },
+      81:{ label: 'Moderate Showers',  icon: '🌧' },
+      82:{ label: 'Heavy Showers',     icon: '🌧' },
+      85:{ label: 'Light Snow Showers',icon: '🌨' },
+      86:{ label: 'Heavy Snow Showers',icon: '❄️' },
+      95:{ label: 'Thunderstorm',      icon: '⛈' },
+      96:{ label: 'T-storm + Hail',    icon: '⛈' },
+      99:{ label: 'T-storm + Heavy Hail',icon: '⛈' }
+    };
+
+    function getWeatherInfo(code) {
+      return WMO_CODES[code] || { label: 'Unknown', icon: '❓' };
+    }
+
+    // ======= FALLBACK BASE_RATES (used if historical API fails) =======
+    const BASE_RATES = {
+      rain: {
+        'new-york': 0.38, 'chicago': 0.33, 'miami': 0.22, 'seattle': 0.45, 'denver': 0.25,
+        'los-angeles': 0.10, 'houston': 0.30, 'phoenix': 0.06, 'boston': 0.37, 'las-vegas': 0.05,
+        'dallas': 0.28, 'atlanta': 0.32, 'minneapolis': 0.30, 'portland': 0.44, 'kansas-city': 0.30
+      },
+      snow: {
+        'new-york': 0.10, 'chicago': 0.12, 'miami': 0.00, 'seattle': 0.03, 'denver': 0.15,
+        'los-angeles': 0.00, 'houston': 0.00, 'phoenix': 0.00, 'boston': 0.12, 'las-vegas': 0.00,
+        'dallas': 0.02, 'atlanta': 0.02, 'minneapolis': 0.18, 'portland': 0.03, 'kansas-city': 0.10
+      },
+      storm: {
+        'new-york': 0.05, 'chicago': 0.06, 'miami': 0.12, 'seattle': 0.03, 'denver': 0.04,
+        'los-angeles': 0.02, 'houston': 0.10, 'phoenix': 0.04, 'boston': 0.04, 'las-vegas': 0.03,
+        'dallas': 0.08, 'atlanta': 0.07, 'minneapolis': 0.06, 'portland': 0.02, 'kansas-city': 0.07
+      },
+      heat: {
+        'new-york': 0.01, 'chicago': 0.01, 'miami': 0.15, 'seattle': 0.00, 'denver': 0.02,
+        'los-angeles': 0.03, 'houston': 0.12, 'phoenix': 0.25, 'boston': 0.01, 'las-vegas': 0.20,
+        'dallas': 0.10, 'atlanta': 0.05, 'minneapolis': 0.01, 'portland': 0.00, 'kansas-city': 0.03
+      }
+    };
+
+    // ================================================================
+    // CHANGE #3: NWS / NOAA FORECAST
+    // ================================================================
+    async function fetchNWSForecast(cityKey) {
+      const city = CITIES[cityKey];
+      if (!city || !city.nws) return null;
+      const parts = city.nws.split('/');
+      const gridId = parts[0];
+      const gridX = parts[1];
+      const gridY = parts[2];
+      const url = `https://api.weather.gov/gridpoints/${gridId}/${gridX},${gridY}/forecast`;
+
+      try {
+        const response = await fetch(url, {
+          headers: { 'User-Agent': 'WeatherEdge/2.0 (weather@example.com)' }
+        });
+        if (!response.ok) throw new Error(`NWS API error: ${response.status}`);
+        const json = await response.json();
+        const periods = json.properties.periods || [];
+        return periods;
+      } catch (err) {
+        console.warn('NWS fetch failed:', err.message);
+        return null;
+      }
+    }
+
+    function estimateNWSProbability(nwsPeriods, eventType, tomorrowData) {
+      if (!nwsPeriods || nwsPeriods.length === 0) return null;
+
+      // Find tomorrow's daytime period (isDaytime: true, and the 2nd or 3rd period typically)
+      let tomorrowDay = null;
+      const now = new Date();
+      const tomorrowDate = new Date(now);
+      tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+      const tomorrowStr = tomorrowDate.toISOString().slice(0, 10);
+
+      for (const p of nwsPeriods) {
+        const pDate = p.startTime ? p.startTime.slice(0, 10) : '';
+        if (pDate === tomorrowStr && p.isDaytime) {
+          tomorrowDay = p;
+          break;
+        }
+      }
+
+      // Fallback: just take the 2nd daytime period
+      if (!tomorrowDay) {
+        const daytimePeriods = nwsPeriods.filter(p => p.isDaytime);
+        tomorrowDay = daytimePeriods[1] || daytimePeriods[0] || null;
+      }
+
+      if (!tomorrowDay) return null;
+
+      const pop = (tomorrowDay.probabilityOfPrecipitation && tomorrowDay.probabilityOfPrecipitation.value != null)
+        ? tomorrowDay.probabilityOfPrecipitation.value : 0;
+      const tempHigh = tomorrowDay.temperature || 0;
+      const tempUnit = tomorrowDay.temperatureUnit || 'F';
+      const tempHighC = tempUnit === 'F' ? (tempHigh - 32) * 5 / 9 : tempHigh;
+      const shortForecast = (tomorrowDay.shortForecast || '').toLowerCase();
+      const windSpeed = tomorrowDay.windSpeed || '';
+
+      switch (eventType) {
+        case 'rain': {
+          // Directly use PoP% as primary signal
+          let prob = (pop / 100) * 0.80;
+          if (shortForecast.includes('rain') || shortForecast.includes('drizzle') || shortForecast.includes('shower')) {
+            prob += 0.12;
+          }
+          return Math.min(prob, 0.97);
+        }
+        case 'snow': {
+          let prob = (pop / 100) * 0.50;
+          if (shortForecast.includes('snow') || shortForecast.includes('blizzard') || shortForecast.includes('flurr')) {
+            prob += 0.30;
+          }
+          if (tempHighC > 5) prob *= 0.1;
+          return Math.min(prob, 0.97);
+        }
+        case 'storm': {
+          let prob = 0;
+          if (shortForecast.includes('thunder') || shortForecast.includes('storm') || shortForecast.includes('tstm')) {
+            prob += 0.50;
+          }
+          // Parse wind for gusts
+          const gustMatch = windSpeed.match(/(\d+)/g);
+          if (gustMatch) {
+            const maxWind = Math.max(...gustMatch.map(Number));
+            if (maxWind > 30) prob += 0.10;
+            if (maxWind > 45) prob += 0.10;
+          }
+          prob += (pop / 100) * 0.15;
+          return Math.min(prob, 0.97);
+        }
+        case 'heat': {
+          let prob = 0;
+          if (tempHighC > 32) prob += 0.30;
+          if (tempHighC > 35) prob += 0.25;
+          if (tempHighC > 38) prob += 0.20;
+          if (tempHighC > 40) prob += 0.15;
+          if (shortForecast.includes('hot') || shortForecast.includes('heat')) prob += 0.10;
+          return Math.min(prob, 0.97);
+        }
+        default:
+          return 0;
+      }
+    }
+
+    // ================================================================
+    // CHANGE #4: HISTORICAL CLIMATOLOGY (replaces hardcoded base rates)
+    // ================================================================
+    async function fetchHistoricalClimatology(lat, lon, dateStr) {
+      try {
+        const d = new Date(dateStr + 'T12:00:00');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const yearNow = d.getFullYear();
+
+        // Fetch a 5-day window around the calendar date for 2 years ago and last year
+        const startMM_DD = mm + '-' + dd;
+        const startDate1 = `${yearNow - 3}-${startMM_DD}`;
+        const endDate1 = `${yearNow - 1}-${startMM_DD}`;
+
+        const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}` +
+          `&start_date=${startDate1}&end_date=${endDate1}` +
+          `&daily=precipitation_sum,snowfall_sum,temperature_2m_max,windspeed_10m_max&timezone=auto`;
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Archive API error: ${response.status}`);
+        const json = await response.json();
+        const daily = json.daily;
+        if (!daily || !daily.time || daily.time.length === 0) return null;
+
+        const n = daily.time.length;
+        let rainDays = 0, snowDays = 0, stormDays = 0, heatDays = 0, validDays = 0;
+
+        for (let i = 0; i < n; i++) {
+          const precip = daily.precipitation_sum[i];
+          const snow = daily.snowfall_sum[i];
+          const tmax = daily.temperature_2m_max[i];
+          const wind = daily.windspeed_10m_max[i];
+          if (precip == null || tmax == null) continue;
+          validDays++;
+          if (precip > 0.5) rainDays++;
+          if (snow != null && snow > 0.5) snowDays++;
+          if (wind != null && wind > 50 && precip > 5) stormDays++;
+          if (tmax > 33) heatDays++;
+        }
+
+        if (validDays === 0) return null;
+
+        return {
+          rain: rainDays / validDays,
+          snow: snowDays / validDays,
+          storm: stormDays / validDays,
+          heat: heatDays / validDays,
+          validDays: validDays
+        };
+      } catch (err) {
+        console.warn('Historical climatology fetch failed:', err.message);
+        return null;
+      }
+    }
+
+    // ================================================================
+    // CHANGE #5: IMPROVED EVENT PROBABILITY MODELS
+    // ================================================================
+    function estimateEventProbability(tomorrowData, eventType) {
+      const {
+        temp_max, temp_min, precip, snowfall, wind_max, weather_code,
+        precip_prob_max, rain_sum, showers_sum, windgusts_10m_max, sunshine_duration
+      } = tomorrowData;
+
+      // Use new fields with fallback to 0
+      const ppMax = precip_prob_max || 0;
+      const rSum = rain_sum || 0;
+      const sSum = showers_sum || 0;
+      const gusts = windgusts_10m_max || wind_max;
+      const sunshine = sunshine_duration != null ? sunshine_duration : -1;
+
+      switch (eventType) {
+        case 'rain': {
+          let prob = 0;
+          prob += (ppMax / 100) * 0.45;                      // NWS-style PoP directly
+          if (precip > 0) prob += 0.10;
+          if (precip > 5) prob += 0.10;
+          if (rSum > 0) prob += 0.08;                         // actual rain (not just precip)
+          if ([51,53,55,61,63,65,66,67,80,81,82].includes(weather_code)) prob += 0.12;
+          if (sunshine === 0 && weather_code >= 2) prob += 0.05; // no sun = cloudy
+          return Math.min(prob, 0.97);
+        }
+        case 'snow': {
+          let prob = 0;
+          if (snowfall > 0) prob += 0.35;
+          if (snowfall > 2) prob += 0.20;
+          if (snowfall > 10) prob += 0.15;
+          if (temp_max < 2) prob += 0.15;
+          if (temp_min < -2) prob += 0.10;
+          if ([71,73,75,77,85,86].includes(weather_code)) prob += 0.25;
+          if (temp_min > 5) prob = Math.min(prob, 0.05);
+          // PoP helps too
+          if (ppMax > 50 && temp_max < 3) prob += 0.10;
+          return Math.min(prob, 0.97);
+        }
+        case 'storm': {
+          let prob = 0;
+          if ([95,96,99].includes(weather_code)) prob += 0.55;
+          prob += Math.min(gusts / 100, 0.20);               // gusts contribution
+          if (gusts > 60) prob += 0.10;
+          if (precip > 10 && sSum > 2) prob += 0.10;         // convective precip = storms
+          if ((ppMax > 60) && (gusts > 40)) prob += 0.08;
+          return Math.min(prob, 0.97);
+        }
+        case 'heat': {
+          let prob = 0;
+          if (temp_max > 32) prob += 0.30;
+          if (temp_max > 35) prob += 0.25;
+          if (temp_max > 38) prob += 0.20;
+          if (temp_max > 40) prob += 0.15;
+          if (temp_min > 22) prob += 0.10;
+          if ([0,1].includes(weather_code)) prob += 0.05;
+          // More sunshine means higher heat probability
+          if (sunshine > 0) prob += 0.03;
+          return Math.min(prob, 0.97);
+        }
+        default:
+          return 0;
+      }
+    }
+
+    // ======= CLIMATOLOGY MODEL (uses historical data if available, fallback to BASE_RATES) =======
+    function estimateClimatologyProbability(tomorrowData, eventType, cityKey, historicalData) {
+      const { temp_max, temp_min, precip, snowfall, wind_max, weather_code } = tomorrowData;
+
+      // If we have real historical data, use it directly
+      if (historicalData && historicalData[eventType] != null) {
+        let base = historicalData[eventType];
+
+        // Slight weather-code adjustment
+        switch (eventType) {
+          case 'rain':
+            if ([51,53,55,61,63,65,66,67,80,81,82].includes(weather_code)) base += 0.10;
+            if (precip > 5) base += 0.08;
+            if ([0,1].includes(weather_code)) base -= 0.08;
+            break;
+          case 'snow':
+            if ([71,73,75,77,85,86].includes(weather_code)) base += 0.15;
+            if (temp_min > 5) base *= 0.1;
+            if (snowfall > 0) base += 0.10;
+            break;
+          case 'storm':
+            if ([95,96,99].includes(weather_code)) base += 0.25;
+            if (wind_max > 50) base += 0.08;
+            break;
+          case 'heat':
+            if (temp_max > 35) base += 0.20;
+            if (temp_max > 30) base += 0.08;
+            if (temp_max < 25) base *= 0.3;
+            break;
+        }
+        return Math.max(0, Math.min(0.97, base));
+      }
+
+      // Fallback to hardcoded BASE_RATES
+      let base = (BASE_RATES[eventType] && BASE_RATES[eventType][cityKey]) || 0.10;
+
+      switch (eventType) {
+        case 'rain':
+          if ([51,53,55,61,63,65,66,67,80,81,82].includes(weather_code)) base += 0.15;
+          if (precip > 5) base += 0.10;
+          if ([0,1].includes(weather_code)) base -= 0.10;
+          break;
+        case 'snow':
+          if ([71,73,75,77,85,86].includes(weather_code)) base += 0.20;
+          if (temp_min > 5) base *= 0.1;
+          if (snowfall > 0) base += 0.15;
+          break;
+        case 'storm':
+          if ([95,96,99].includes(weather_code)) base += 0.30;
+          if (wind_max > 50) base += 0.10;
+          break;
+        case 'heat':
+          if (temp_max > 35) base += 0.25;
+          if (temp_max > 30) base += 0.10;
+          if (temp_max < 25) base *= 0.3;
+          break;
+      }
+
+      return Math.max(0, Math.min(0.95, base));
+    }
+
+    // ======= COMPOSITE MODEL =======
+    function estimateCompositeProbability(tomorrowData, eventType, cityKey) {
+      const {
+        temp_max, temp_min, precip, snowfall, wind_max, weather_code,
+        precip_prob_max, rain_sum, showers_sum, windgusts_10m_max, sunshine_duration
+      } = tomorrowData;
+
+      const ppMax = precip_prob_max || 0;
+      const rSum = rain_sum || 0;
+      const sSum = showers_sum || 0;
+      const gusts = windgusts_10m_max || wind_max;
+
+      const features = {
+        rain: () => {
+          let score = 0;
+          score += (ppMax / 100) * 0.35;
+          score += Math.min(precip / 15, 1) * 0.25;
+          if ([61,63,65,80,81,82].includes(weather_code)) score += 0.20;
+          else if ([51,53,55,66,67].includes(weather_code)) score += 0.12;
+          else if ([2,3,45,48].includes(weather_code)) score += 0.05;
+          if (rSum > 2) score += 0.06;
+          const spread = temp_max - temp_min;
+          if (spread < 6) score += 0.06;
+          return score;
+        },
+        snow: () => {
+          let score = 0;
+          score += Math.min(snowfall / 8, 1) * 0.35;
+          if ([71,73,75,77,85,86].includes(weather_code)) score += 0.30;
+          if (temp_max < 0) score += 0.20;
+          else if (temp_max < 3) score += 0.12;
+          else if (temp_max < 6) score += 0.05;
+          if (temp_min > 4) score *= 0.15;
+          return score;
+        },
+        storm: () => {
+          let score = 0;
+          if ([95,96,99].includes(weather_code)) score += 0.45;
+          score += Math.min(gusts / 80, 1) * 0.20;
+          score += Math.min(precip / 30, 1) * 0.10;
+          if (sSum > 2 && precip > 10) score += 0.10;
+          if ((temp_max - temp_min) > 12 && temp_max > 20) score += 0.08;
+          if (ppMax > 60 && gusts > 40) score += 0.07;
+          return score;
+        },
+        heat: () => {
+          let score = 0;
+          const x = (temp_max - 33) / 3;
+          score = 1 / (1 + Math.exp(-x)) * 0.75;
+          if (temp_min > 22) score += 0.10;
+          if ([0,1].includes(weather_code)) score += 0.05;
+          if (temp_max < 28) score = 0;
+          return score;
+        }
+      };
+
+      const scoreFn = features[eventType];
+      const prob = scoreFn ? scoreFn() : 0;
+      return Math.max(0, Math.min(0.95, prob));
+    }
+
+    // ======= MOCK MARKET PRICE (BINARY) =======
+    function generateMockMarketPrice(eventType, cityKey, tomorrowData) {
+      const baseProb = estimateEventProbability(tomorrowData, eventType);
+      const chars = (cityKey + eventType).split('');
+      const hash = chars.reduce((acc, c) => ((acc << 5) - acc + c.charCodeAt(0)) | 0, 0);
+      const normalized = (Math.abs(hash) % 1000) / 1000;
+      const noise = (normalized - 0.5) * 0.30;
+      const bias = 0.03;
+      let marketPrice = baseProb + noise + bias;
+      marketPrice = Math.max(0.05, Math.min(0.95, marketPrice));
+      marketPrice = Math.round(marketPrice * 100) / 100;
+      return marketPrice;
+    }
+
+    // ======= KELLY CRITERION (BINARY) =======
+    function kellyBetSize(probability, impliedProb, bankroll = 20, fractionKelly = 0.25, maxBet = 5) {
+      if (impliedProb <= 0 || impliedProb >= 1) return 0;
+      const b = (1 - impliedProb) / impliedProb;
+      const p = probability;
+      const q = 1 - p;
+      const fullKelly = (b * p - q) / b;
+      if (fullKelly <= 0) return 0;
+      const fractionalKelly = fullKelly * fractionKelly;
+      const betAmount = fractionalKelly * bankroll;
+      return Math.min(betAmount, maxBet);
+    }
+
+    // ================================================================
+    // TEMPERATURE BRACKET MODEL
+    // ================================================================
+
+    // Standard normal PDF
+    function normalPDF(x, mean, std) {
+      const z = (x - mean) / std;
+      return Math.exp(-0.5 * z * z) / (std * Math.sqrt(2 * Math.PI));
+    }
+
+    // Standard normal CDF (approximation via error function)
+    function normalCDF(x, mean, std) {
+      const z = (x - mean) / std;
+      // Abramowitz and Stegun approximation
+      const t = 1 / (1 + 0.2316419 * Math.abs(z));
+      const d = 0.3989422804014327; // 1/sqrt(2*PI)
+      const p = d * Math.exp(-z * z / 2);
+      const poly = t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+      const cdf = z >= 0 ? 1 - p * poly : p * poly;
+      return cdf;
+    }
+
+    // Generate single-degree temperature outcomes around a forecast point
+    function generateBrackets(forecastMaxC) {
+      const forecastF = Math.round(forecastMaxC * 9/5 + 32);
+      const brackets = [];
+      const halfRange = 10;
+      const startF = forecastF - halfRange;
+      const endF = forecastF + halfRange;
+
+      for (let f = startF; f <= endF; f++) {
+        brackets.push({
+          label: `${f}°F`,
+          tempF: f,
+          lowF: f,
+          highF: f,
+          lowC: (f - 32) * 5/9,
+          highC: (f - 32) * 5/9,
+        });
+      }
+
+      return brackets;
+    }
+
+    // CHANGE #8: Improved temperature bracket std dev calculation
+    function computeBracketProbabilities(forecastMaxC, forecastMinC, brackets, dayIndex, dayData) {
+      const spreadC = Math.abs(forecastMaxC - forecastMinC);
+
+      // Base std = 1.5°C for day 1-2, +0.3°C per additional day beyond day 2
+      let stdC = 1.5;
+      if (dayIndex != null && dayIndex > 1) {
+        stdC += (dayIndex - 1) * 0.3;
+      }
+
+      // Reduce std when precip_prob_max < 20 (clear day = more predictable)
+      if (dayData && dayData.precip_prob_max != null && dayData.precip_prob_max < 20) {
+        stdC *= 0.85;
+      }
+
+      stdC += spreadC * 0.12;
+
+      const stdF = stdC * 9/5;
+      let meanF = forecastMaxC * 9/5 + 32;
+
+      // Add slight warm bias when sunshine_duration > 0 on that day
+      if (dayData && dayData.sunshine_duration != null && dayData.sunshine_duration > 0) {
+        meanF += 0.3;
+      }
+
+      const probs = brackets.map(b => {
+        const p = normalCDF(b.tempF + 0.5, meanF, stdF) - normalCDF(b.tempF - 0.5, meanF, stdF);
+        return Math.max(p, 0.002);
+      });
+
+      const total = probs.reduce((s, v) => s + v, 0);
+      return probs.map(p => p / total);
+    }
+
+    // Generate mock market prices for single-degree outcomes
+    function generateBracketMarketPrices(modelProbs, cityKey, dayIndex) {
+      const seed = cityKey + '_temp_' + dayIndex;
+      const hashFn = (str, idx) => {
+        const chars = (str + idx).split('');
+        return chars.reduce((acc, c) => ((acc << 5) - acc + c.charCodeAt(0)) | 0, 0);
+      };
+
+      const rawPrices = modelProbs.map((p, i) => {
+        const h = hashFn(seed, i);
+        const noise = ((Math.abs(h) % 100) - 50) / 600;
+        const tailBias = p < 0.03 ? 0.01 : (p > 0.12 ? -0.008 : 0);
+        let price = p + noise + tailBias;
+        price = Math.max(0.005, price);
+        return price;
+      });
+
+      const rawTotal = rawPrices.reduce((s, v) => s + v, 0);
+      const vigMultiplier = 1.05 / rawTotal;
+      const marketPrices = rawPrices.map(p => {
+        const adjusted = p * vigMultiplier;
+        return Math.max(0.005, Math.min(0.95, adjusted));
+      });
+
+      return marketPrices;
+    }
+
+    // Multi-outcome Kelly Criterion
+    function multiKellyBet(modelProb, marketPrice, bankroll = 20, fractionKelly = 0.25, maxBet = 5) {
+      if (marketPrice <= 0 || marketPrice >= 1 || modelProb <= marketPrice) return 0;
+      const edge = modelProb - marketPrice;
+      const odds = 1 - marketPrice;
+      const fullKelly = edge / odds;
+      const bet = fullKelly * fractionKelly * bankroll;
+      return Math.min(Math.max(bet, 0), maxBet);
+    }
+
+    // ================================================================
+    // CHANGE #1: EXPANDED OPEN-METEO API CALL
+    // ================================================================
+    async function fetchForecast(lat, lon) {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+        `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,` +
+        `windspeed_10m_max,windgusts_10m_max,weathercode,precipitation_probability_max,` +
+        `rain_sum,showers_sum,sunshine_duration` +
+        `&hourly=precipitation_probability,weathercode,temperature_2m,windspeed_10m` +
+        `&timezone=auto&forecast_days=7`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      return response.json();
+    }
+
+    // ======= FORMAT HELPERS =======
+    function formatDate(dateStr) {
+      const d = new Date(dateStr + 'T12:00:00');
+      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+
+    function formatTemp(celsius) {
+      const f = Math.round(celsius * 9/5 + 32);
+      return `${f}°F`;
+    }
+
+    function formatPct(value) {
+      return (value * 100).toFixed(1) + '%';
+    }
+
+    function formatDollar(value) {
+      return '$' + value.toFixed(2);
+    }
+
+    function formatCents(prob) {
+      const cents = prob * 100;
+      if (cents < 1) return cents.toFixed(1) + '¢';
+      return Math.round(cents) + '¢';
+    }
+
+    // ======= RENDER: FORECAST TABLE =======
+    function renderForecast(data, options = {}) {
+      const daily = data.daily;
+      const dates = daily.time;
+      const { highlightDay } = options;
+
+      // Check for new fields
+      const hasPrecipProb = daily.precipitation_probability_max != null;
+      const hasGusts = daily.windgusts_10m_max != null;
+
+      let html = '<table class="forecast-table"><thead><tr>';
+      html += '<th>Day</th><th>Condition</th><th>High</th><th>Low</th>';
+      html += '<th>Precip</th><th>Snow</th><th>Wind</th>';
+      if (hasGusts) html += '<th>Gusts</th>';
+      if (hasPrecipProb) html += '<th>PoP%</th>';
+      html += '</tr></thead><tbody>';
+
+      for (let i = 0; i < dates.length; i++) {
+        const isTomorrow = i === 1;
+        const isHighlighted = highlightDay !== undefined ? i === highlightDay : isTomorrow;
+        const rowClass = isHighlighted ? 'tomorrow-row' : '';
+        const info = getWeatherInfo(daily.weathercode[i]);
+
+        let dayTag = '';
+        if (isTomorrow && highlightDay === undefined) {
+          dayTag = '<span class="tomorrow-tag">Tomorrow</span>';
+        } else if (highlightDay !== undefined && i === highlightDay) {
+          dayTag = '<span class="tomorrow-tag">Selected</span>';
+        }
+
+        html += `<tr class="${rowClass}">`;
+        html += `<td><span class="day-label">${formatDate(dates[i])}${dayTag}</span></td>`;
+        html += `<td><span class="weather-icon">${info.icon} ${info.label}</span></td>`;
+        html += `<td>${formatTemp(daily.temperature_2m_max[i])}</td>`;
+        html += `<td>${formatTemp(daily.temperature_2m_min[i])}</td>`;
+        html += `<td>${daily.precipitation_sum[i].toFixed(1)} mm</td>`;
+        html += `<td>${daily.snowfall_sum[i].toFixed(1)} cm</td>`;
+        html += `<td>${daily.windspeed_10m_max[i].toFixed(0)} km/h</td>`;
+        if (hasGusts) {
+          const gust = daily.windgusts_10m_max[i];
+          html += `<td>${gust != null ? gust.toFixed(0) + ' km/h' : '—'}</td>`;
+        }
+        if (hasPrecipProb) {
+          const pp = daily.precipitation_probability_max[i];
+          html += `<td>${pp != null ? pp + '%' : '—'}</td>`;
+        }
+        html += '</tr>';
+      }
+
+      html += '</tbody></table>';
+      return html;
+    }
+
+    // ================================================================
+    // CHANGE #6: HOURLY PRECIPITATION PROBABILITY CHART
+    // ================================================================
+    function renderHourlyPrecipChart(data) {
+      if (!data.hourly || !data.hourly.precipitation_probability || !data.hourly.time) {
+        return '';
+      }
+
+      const hourlyTimes = data.hourly.time;
+      const hourlyProbs = data.hourly.precipitation_probability;
+
+      // Find tomorrow's hours (second day of data)
+      const tomorrowDate = data.daily.time[1];
+      const tomorrowIndices = [];
+      for (let i = 0; i < hourlyTimes.length; i++) {
+        if (hourlyTimes[i].startsWith(tomorrowDate)) {
+          tomorrowIndices.push(i);
+        }
+      }
+
+      if (tomorrowIndices.length === 0) return '';
+
+      // We need 24 hours
+      const hours = [];
+      for (const idx of tomorrowIndices) {
+        const t = new Date(hourlyTimes[idx]);
+        hours.push({
+          hour: t.getHours(),
+          prob: hourlyProbs[idx] || 0,
+          label: hourlyTimes[idx]
+        });
+      }
+
+      // SVG bar chart
+      const svgW = 700;
+      const svgH = 150;
+      const marginLeft = 36;
+      const marginRight = 10;
+      const marginTop = 10;
+      const marginBottom = 28;
+      const chartW = svgW - marginLeft - marginRight;
+      const chartH = svgH - marginTop - marginBottom;
+      const barCount = hours.length;
+      const barGap = 2;
+      const barW = (chartW - barGap * (barCount - 1)) / barCount;
+
+      let svg = `<svg viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">`;
+
+      // Y-axis gridlines
+      for (let pct = 0; pct <= 100; pct += 25) {
+        const y = marginTop + chartH - (pct / 100) * chartH;
+        svg += `<line x1="${marginLeft}" y1="${y}" x2="${svgW - marginRight}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+        svg += `<text x="${marginLeft - 4}" y="${y + 3}" text-anchor="end" fill="#555f6e" font-size="9" font-family="'JetBrains Mono',monospace">${pct}%</text>`;
+      }
+
+      // Bars
+      for (let i = 0; i < barCount; i++) {
+        const h = hours[i];
+        const x = marginLeft + i * (barW + barGap);
+        const barH = (h.prob / 100) * chartH;
+        const y = marginTop + chartH - barH;
+
+        let fill;
+        if (h.prob > 60) fill = '#f87171'; // red
+        else if (h.prob >= 30) fill = '#fbbf24'; // yellow
+        else fill = '#34d399'; // green
+
+        svg += `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="1.5" fill="${fill}" opacity="0.85"/>`;
+
+        // X-axis labels: show every 3 hours
+        if (h.hour % 3 === 0) {
+          let timeLabel;
+          if (h.hour === 0) timeLabel = '12am';
+          else if (h.hour < 12) timeLabel = h.hour + 'am';
+          else if (h.hour === 12) timeLabel = '12pm';
+          else timeLabel = (h.hour - 12) + 'pm';
+
+          svg += `<text x="${x + barW / 2}" y="${svgH - 6}" text-anchor="middle" fill="#555f6e" font-size="9" font-family="'JetBrains Mono',monospace">${timeLabel}</text>`;
+        }
+      }
+
+      svg += '</svg>';
+
+      // Color legend
+      svg += '<div style="display:flex;gap:16px;justify-content:center;margin-top:6px;font-size:11px;color:var(--text-faint);">';
+      svg += '<span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#34d399;"></span> &lt;30%</span>';
+      svg += '<span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#fbbf24;"></span> 30–60%</span>';
+      svg += '<span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#f87171;"></span> &gt;60%</span>';
+      svg += '</div>';
+
+      return svg;
+    }
+
+    function renderMarket(cityName, eventType, impliedProb, tomorrowDate) {
+      const eventLabels = {
+        rain: 'Rain',
+        snow: 'Snowfall',
+        storm: 'Thunderstorm',
+        heat: 'Heat Wave (90°F+)'
+      };
+
+      const noPrice = 1 - impliedProb;
+
+      let html = '<div class="market-card">';
+      html += `<div class="market-question">Will ${cityName} experience ${eventLabels[eventType]} tomorrow (${formatDate(tomorrowDate)})?</div>`;
+      html += '<div class="market-prices">';
+      html += `<div class="price-card"><div class="price-label">YES</div><div class="price-value price-yes" data-testid="text-yes-price">${Math.round(impliedProb * 100)}¢</div></div>`;
+      html += `<div class="price-card"><div class="price-label">NO</div><div class="price-value price-no" data-testid="text-no-price">${Math.round(noPrice * 100)}¢</div></div>`;
+      html += '</div>';
+      html += '<div class="market-meta">';
+      const volHash = (cityName.length * 97 + eventType.length * 31) % 50;
+      const vol = (volHash + 15) * 1000 + 234;
+      const traders = volHash * 4 + 62;
+      html += `<span>📊 Volume: $${vol.toLocaleString()}</span>`;
+      html += `<span>👥 ${traders} traders</span>`;
+      html += '</div>';
+      html += '</div>';
+      return html;
+    }
+
+    function renderAnalysis(ourProb, impliedProb, edge, kellyAmount, eventType) {
+      const edgeAboveThreshold = edge > 0.04;
+      const edgeClass = edgeAboveThreshold ? 'positive' : (edge < -0.02 ? 'negative' : 'neutral');
+      const probClass = ourProb > 0.5 ? 'high' : (ourProb > 0.25 ? 'medium' : 'low');
+
+      let signalHTML, signalExplanation;
+      if (edgeAboveThreshold && kellyAmount > 0.10) {
+        signalHTML = '<span class="signal-badge bet" data-testid="text-signal">▲ BET YES</span>';
+        signalExplanation = `Edge of ${formatPct(edge)} exceeds the 4% threshold. Kelly suggests a position.`;
+      } else if (edge < -0.04) {
+        signalHTML = '<span class="signal-badge bet" data-testid="text-signal" style="color:var(--red);background:var(--red-dim);border-color:var(--red-mid)">▼ BET NO</span>';
+        signalExplanation = `Negative edge of ${formatPct(edge)} — market overestimates. Consider a NO position.`;
+      } else {
+        signalHTML = '<span class="signal-badge no-bet" data-testid="text-signal">— NO BET</span>';
+        signalExplanation = `Edge of ${formatPct(edge)} is below the 4% threshold. Not enough conviction to justify a position.`;
+      }
+
+      let html = '<div class="analysis-stack">';
+      html += '<div class="metric-row"><span class="metric-label">Consensus Prob.</span>';
+      html += `<span class="metric-value" data-testid="text-our-prob">${formatPct(ourProb)}</span></div>`;
+      html += `<div class="prob-bar-container"><div class="prob-bar-label-row"><span>0%</span><span>100%</span></div>`;
+      html += `<div class="prob-bar-track"><div class="prob-bar-fill ${probClass}" style="width:${ourProb * 100}%"></div></div></div>`;
+      html += '<div class="divider"></div>';
+      html += '<div class="metric-row"><span class="metric-label">Market Implied</span>';
+      html += `<span class="metric-value" data-testid="text-market-prob">${formatPct(impliedProb)}</span></div>`;
+      html += '<div class="divider"></div>';
+      html += '<div class="metric-row"><span class="metric-label">Edge</span>';
+      html += `<span class="metric-value ${edgeClass}" data-testid="text-edge">${edge > 0 ? '+' : ''}${formatPct(edge)}</span></div>`;
+
+      const edgePct = Math.max(-0.3, Math.min(0.3, edge));
+      const barStart = edgePct >= 0 ? 50 : 50 + (edgePct / 0.3) * 50;
+      const barWidth = Math.abs(edgePct) / 0.3 * 50;
+      const barColor = edgePct >= 0 ? 'var(--green)' : 'var(--red)';
+      html += '<div class="edge-bar-container">';
+      html += '<div class="edge-bar-track"><div class="edge-bar-center"></div>';
+      html += `<div class="edge-bar-fill" style="left:${barStart}%;width:${barWidth}%;background:${barColor}"></div></div>`;
+      html += '<div class="edge-labels"><span>-30%</span><span>0%</span><span>+30%</span></div>';
+      html += '</div>';
+      html += '<div class="divider"></div>';
+      html += '<div class="signal-container">';
+      html += signalHTML;
+      html += `<p class="signal-explanation">${signalExplanation}</p>`;
+      html += '</div>';
+      html += '<div class="divider"></div>';
+      html += '<div class="kelly-box">';
+      html += '<div class="kelly-row"><span class="kelly-label">Strategy</span><span class="kelly-value">25% Fractional Kelly</span></div>';
+      html += '<div class="kelly-row"><span class="kelly-label">Bankroll</span><span class="kelly-value">$20.00</span></div>';
+      html += `<div class="kelly-row"><span class="kelly-label">Recommended Bet</span><span class="kelly-bet-amount" data-testid="text-kelly-bet">${formatDollar(kellyAmount)}</span></div>`;
+      html += '<div class="kelly-row"><span class="kelly-label">Max Bet Cap</span><span class="kelly-value">$5.00</span></div>';
+      html += '</div>';
+      html += '</div>';
+      return html;
+    }
+
+    // ================================================================
+    // CHANGE #7: CONSENSUS RENDERER (4 models)
+    // ================================================================
+    function renderConsensus(forecastProb, climatologyProb, compositeProb, eventType, nwsProb) {
+      // Handle loading states: nwsProb or climatologyProb may be null (loading) or a number
+      const isNWSLoading = nwsProb === 'loading';
+      const isClimatologyLoading = climatologyProb === 'loading';
+
+      const forecastVal = typeof forecastProb === 'number' ? forecastProb : 0;
+      const climatologyVal = typeof climatologyProb === 'number' ? climatologyProb : null;
+      const compositeVal = typeof compositeProb === 'number' ? compositeProb : 0;
+      const nwsVal = typeof nwsProb === 'number' ? nwsProb : null;
+
+      // Compute average from available models
+      const availableProbs = [forecastVal, compositeVal];
+      if (climatologyVal != null) availableProbs.push(climatologyVal);
+      if (nwsVal != null) availableProbs.push(nwsVal);
+
+      const avg = availableProbs.reduce((s, v) => s + v, 0) / availableProbs.length;
+      const maxP = Math.max(...availableProbs);
+      const minP = Math.min(...availableProbs);
+      const spread = maxP - minP;
+      const isDivergent = spread > 0.08;
+
+      const models = [
+        {
+          name: 'Forecast',
+          desc: 'Open-Meteo PoP + precip signals',
+          prob: forecastVal,
+          loading: false,
+          iconClass: 'forecast',
+          barClass: 'forecast-fill',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>'
+        },
+        {
+          name: 'Climatology',
+          desc: isClimatologyLoading ? 'Loading historical data…' : 'Historical archive frequencies',
+          prob: climatologyVal,
+          loading: isClimatologyLoading,
+          iconClass: 'climate',
+          barClass: 'climate-fill',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>'
+        },
+        {
+          name: 'Composite',
+          desc: 'Weighted feature regression',
+          prob: compositeVal,
+          loading: false,
+          iconClass: 'composite',
+          barClass: 'composite-fill',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>'
+        },
+        {
+          name: 'NWS / NOAA',
+          desc: isNWSLoading ? 'Loading NWS forecast…' : 'Official PoP% + forecast text',
+          prob: nwsVal,
+          loading: isNWSLoading,
+          iconClass: 'nws',
+          barClass: 'nws-fill',
+          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 15h18M3 9h18M12 3v18"/><rect x="2" y="2" width="20" height="20" rx="3"/></svg>'
+        }
+      ];
+
+      let html = '<div class="consensus-grid">';
+      for (const m of models) {
+        html += '<div class="model-card" data-testid="card-model-' + m.name.toLowerCase().replace(/[^a-z]/g, '') + '">';
+        html += '<div class="model-card-header">';
+        html += `<div class="model-icon ${m.iconClass}">${m.icon}</div>`;
+        html += '<div class="model-info">';
+        html += `<span class="model-name">${m.name}</span>`;
+        html += `<span class="model-desc">${m.desc}</span>`;
+        html += '</div></div>';
+        if (m.loading) {
+          html += '<div class="model-loading-text"><span class="inline-spinner"></span> Loading…</div>';
+          html += `<div class="model-prob-bar"><div class="model-prob-bar-fill ${m.barClass}" style="width:0%"></div></div>`;
+        } else if (m.prob != null) {
+          html += `<div class="model-prob-value">${formatPct(m.prob)}</div>`;
+          html += `<div class="model-prob-bar"><div class="model-prob-bar-fill ${m.barClass}" style="width:${Math.max(m.prob * 100, 1)}%"></div></div>`;
+        } else {
+          html += '<div class="model-prob-value" style="color:var(--text-faint);font-size:var(--text-sm);">N/A</div>';
+          html += `<div class="model-prob-bar"><div class="model-prob-bar-fill ${m.barClass}" style="width:0%"></div></div>`;
+        }
+        html += '</div>';
+      }
+      html += '</div>';
+
+      html += '<div class="consensus-footer">';
+      html += '<div style="display:flex;gap:16px;flex-wrap:wrap">';
+      html += `<span class="consensus-stat">Avg: <span class="stat-value" data-testid="text-consensus-avg">${formatPct(avg)}</span></span>`;
+      html += `<span class="consensus-stat">Spread: <span class="stat-value" data-testid="text-consensus-spread">${formatPct(spread)}</span></span>`;
+      html += `<span class="consensus-stat">Models: <span class="stat-value">${availableProbs.length}/4</span></span>`;
+      html += '</div>';
+
+      if (isDivergent) {
+        html += '<span class="disagreement-flag divergent" data-testid="text-consensus-flag">';
+        html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+        html += 'Divergent (&gt;8%)';
+        html += '</span>';
+      } else {
+        html += '<span class="disagreement-flag aligned" data-testid="text-consensus-flag">';
+        html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>';
+        html += 'Aligned';
+        html += '</span>';
+      }
+
+      html += '</div>';
+      return { html, avg, spread, isDivergent };
+    }
+
+    // ======= RENDER: TEMPERATURE BRACKET MARKET =======
+    function renderTempBracketMarket(data, cityKey, dayIndex) {
+      const daily = data.daily;
+      const maxC = daily.temperature_2m_max[dayIndex];
+      const minC = daily.temperature_2m_min[dayIndex];
+      const dateStr = daily.time[dayIndex];
+      const cityName = CITIES[cityKey].name;
+
+      // Build per-day data for improved std dev
+      const dayData = {
+        precip_prob_max: daily.precipitation_probability_max ? daily.precipitation_probability_max[dayIndex] : null,
+        sunshine_duration: daily.sunshine_duration ? daily.sunshine_duration[dayIndex] : null
+      };
+
+      // Generate brackets and probabilities (CHANGE #8: pass dayIndex and dayData)
+      const brackets = generateBrackets(maxC);
+      const modelProbs = computeBracketProbabilities(maxC, minC, brackets, dayIndex, dayData);
+      const marketPrices = generateBracketMarketPrices(modelProbs, cityKey, dayIndex);
+
+      // Find edges
+      const edges = modelProbs.map((mp, i) => mp - marketPrices[i]);
+      const maxEdge = Math.max(...edges);
+      const bestIdx = edges.indexOf(maxEdge);
+      const maxModelProb = Math.max(...modelProbs);
+
+      // Kelly for best bracket
+      const bestKelly = multiKellyBet(modelProbs[bestIdx], marketPrices[bestIdx]);
+      const relativeEdge = modelProbs[bestIdx] > 0 ? maxEdge / modelProbs[bestIdx] : 0;
+      const hasBet = maxEdge > 0.015 && relativeEdge > 0.20 && bestKelly > 0.05;
+
+      // Day selector
+      let html = '<div class="temp-market-header-row">';
+      html += '<div>';
+      html += `<div class="temp-market-title">Daily High Temperature — ${cityName}, ${formatDate(dateStr)}</div>`;
+      html += `<div class="temp-market-subtitle">Forecast high: ${formatTemp(maxC)} · What will the exact high be?</div>`;
+      html += '</div>';
+      html += '<div class="day-selector" data-testid="day-selector">';
+      for (let i = 0; i < daily.time.length; i++) {
+        const d = new Date(daily.time[i] + 'T12:00:00');
+        const dayLabel = i === 0 ? 'Today' : (i === 1 ? 'Tmrw' : d.toLocaleDateString('en-US', { weekday: 'short' }));
+        const activeClass = i === dayIndex ? 'active' : '';
+        html += `<button class="day-btn ${activeClass}" data-day="${i}" data-testid="day-btn-${i}">${dayLabel}</button>`;
+      }
+      html += '</div>';
+      html += '</div>';
+
+      // Bracket table
+      html += '<div class="bracket-table-wrap">';
+      html += '<table class="bracket-table" data-testid="bracket-table">';
+      html += '<thead><tr>';
+      html += '<th>Bracket</th>';
+      html += '<th>Model Prob</th>';
+      html += '<th>Market Price</th>';
+      html += '<th class="align-right">Edge</th>';
+      html += '<th class="align-right">Kelly Bet</th>';
+      html += '</tr></thead><tbody>';
+
+      for (let i = 0; i < brackets.length; i++) {
+        const isBest = i === bestIdx && hasBet;
+        const rowClass = isBest ? 'best-bracket' : '';
+        const edgeVal = edges[i];
+        const relEdge = modelProbs[i] > 0 ? edgeVal / modelProbs[i] : 0;
+        const edgeClass = (edgeVal > 0.015 && relEdge > 0.20) ? 'edge-positive' : (edgeVal < -0.015 ? 'edge-negative' : 'edge-neutral');
+        const kellyAmt = multiKellyBet(modelProbs[i], marketPrices[i]);
+        const barWidthModel = (modelProbs[i] / maxModelProb) * 100;
+        const barWidthMarket = (marketPrices[i] / maxModelProb) * 100;
+
+        html += `<tr class="${rowClass}">`;
+
+        // Bracket label
+        html += '<td><span class="bracket-range">' + brackets[i].label;
+        if (isBest) html += ' <span class="best-tag">Best</span>';
+        html += '</span></td>';
+
+        // Model probability with bar
+        html += '<td><div class="prob-dist-bar">';
+        html += `<div class="prob-dist-track"><div class="prob-dist-fill model" style="width:${barWidthModel}%"></div></div>`;
+        html += `<span class="prob-dist-pct">${formatPct(modelProbs[i])}</span>`;
+        html += '</div></td>';
+
+        // Market price with bar
+        html += '<td><div class="prob-dist-bar">';
+        html += `<div class="prob-dist-track"><div class="prob-dist-fill market" style="width:${barWidthMarket}%"></div></div>`;
+        html += `<span class="prob-dist-pct">${formatCents(marketPrices[i])}</span>`;
+        html += '</div></td>';
+
+        // Edge
+        html += `<td class="td-right ${edgeClass}">${edgeVal > 0 ? '+' : ''}${formatPct(edgeVal)}</td>`;
+
+        // Kelly
+        html += `<td class="td-right">${kellyAmt > 0.05 ? formatDollar(kellyAmt) : '—'}</td>`;
+
+        html += '</tr>';
+      }
+
+      html += '</tbody></table>';
+      html += '</div>'; // close bracket-table-wrap
+
+      // Overround
+      const overround = marketPrices.reduce((s, v) => s + v, 0);
+
+      // Summary cards
+      html += '<div class="temp-summary">';
+
+      // Forecast high
+      html += '<div class="temp-summary-card">';
+      html += '<div class="temp-summary-label">Forecast High</div>';
+      html += `<div class="temp-summary-value" style="color:var(--accent)">${formatTemp(maxC)}</div>`;
+      html += `<div class="temp-summary-sub">${maxC.toFixed(1)}°C</div>`;
+      html += '</div>';
+
+      // Best bracket
+      html += '<div class="temp-summary-card">';
+      html += '<div class="temp-summary-label">Best Bracket</div>';
+      if (hasBet) {
+        html += `<div class="temp-summary-value" style="color:var(--green)">${brackets[bestIdx].label}</div>`;
+        html += `<div class="temp-summary-sub">Edge: +${formatPct(maxEdge)}</div>`;
+      } else {
+        html += `<div class="temp-summary-value" style="color:var(--text-faint)">None</div>`;
+        html += `<div class="temp-summary-sub">No sufficient edge</div>`;
+      }
+      html += '</div>';
+
+      // Market overround
+      html += '<div class="temp-summary-card">';
+      html += '<div class="temp-summary-label">Overround</div>';
+      html += `<div class="temp-summary-value" style="color:var(--yellow)">${formatPct(overround - 1)}</div>`;
+      html += `<div class="temp-summary-sub">Market vig built into prices</div>`;
+      html += '</div>';
+
+      html += '</div>';
+
+      // Bet signal + Kelly
+      html += '<div class="temp-bet-row">';
+
+      // Signal
+      html += '<div class="temp-signal-box">';
+      if (hasBet) {
+        html += `<div class="temp-signal-badge bet" data-testid="text-temp-signal">▲ BET ${brackets[bestIdx].label}</div>`;
+        html += `<div class="temp-signal-detail">Model probability of ${formatPct(modelProbs[bestIdx])} vs market price of ${formatCents(marketPrices[bestIdx])} gives +${formatPct(maxEdge)} edge (${(relativeEdge * 100).toFixed(0)}% relative). Strong mispricing detected.</div>`;
+      } else {
+        html += '<div class="temp-signal-badge no-bet" data-testid="text-temp-signal">— NO BET</div>';
+        html += '<div class="temp-signal-detail">No bracket shows sufficient relative edge to justify a position. Need &gt;1.5% absolute and &gt;20% relative to model probability.</div>';
+      }
+      html += '</div>';
+
+      // Kelly
+      html += '<div class="temp-signal-box">';
+      html += '<div class="kelly-box" style="width:100%">';
+      html += '<div class="kelly-row"><span class="kelly-label">Strategy</span><span class="kelly-value">25% Fractional Kelly</span></div>';
+      html += '<div class="kelly-row"><span class="kelly-label">Bankroll</span><span class="kelly-value">$20.00</span></div>';
+      html += `<div class="kelly-row"><span class="kelly-label">Recommended Bet</span><span class="kelly-bet-amount" data-testid="text-temp-kelly">${hasBet ? formatDollar(bestKelly) : '$0.00'}</span></div>`;
+      html += '<div class="kelly-row"><span class="kelly-label">Max Bet Cap</span><span class="kelly-value">$5.00</span></div>';
+      html += '</div>';
+      html += '</div>';
+
+      html += '</div>';
+
+      return html;
+    }
+
+    // ======= MODE SWITCHING =======
+    function setMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.mode-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.mode === mode);
+      });
+      document.getElementById('event-view').classList.toggle('hidden', mode !== 'event');
+      document.getElementById('temp-view').classList.toggle('hidden', mode !== 'temp');
+      document.getElementById('event-group').classList.toggle('hidden', mode === 'temp');
+
+      // If we have cached data and switching to temp, re-render
+      if (mode === 'temp' && cachedForecastData) {
+        renderTempView();
+      }
+    }
+
+    function renderTempView() {
+      if (!cachedForecastData) return;
+      const cityKey = citySelect.value;
+      const data = cachedForecastData;
+
+      document.getElementById('temp-forecast-badge').textContent = CITIES[cityKey].name;
+      document.getElementById('temp-forecast-body').innerHTML = renderForecast(data, { highlightDay: selectedTempDayIndex });
+      document.getElementById('temp-market-body').innerHTML = renderTempBracketMarket(data, cityKey, selectedTempDayIndex);
+
+      // Bind day selector buttons
+      document.querySelectorAll('#temp-market-body .day-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedTempDayIndex = parseInt(btn.dataset.day);
+          renderTempView();
+        });
+      });
+    }
+
+    // ======= MAIN =======
+    const citySelect = document.getElementById('city-select');
+    const eventSelect = document.getElementById('event-select');
+    const fetchBtn = document.getElementById('fetch-btn');
+    const forecastBody = document.getElementById('forecast-body');
+    const marketBody = document.getElementById('market-body');
+    const analysisBody = document.getElementById('analysis-body');
+    const consensusBody = document.getElementById('consensus-body');
+    const forecastBadge = document.getElementById('forecast-city-badge');
+    const analysisEventBadge = document.getElementById('analysis-event-badge');
+    const consensusEventBadge = document.getElementById('consensus-event-badge');
+
+    // Tab switching
+    document.querySelectorAll('.mode-tab').forEach(tab => {
+      tab.addEventListener('click', () => setMode(tab.dataset.mode));
+    });
+
+    fetchBtn.addEventListener('click', async () => {
+      const cityKey = citySelect.value;
+      const eventType = eventSelect.value;
+      const city = CITIES[cityKey];
+
+      fetchBtn.classList.add('loading');
+      fetchBtn.disabled = true;
+
+      try {
+        const data = await fetchForecast(city.lat, city.lon);
+        cachedForecastData = data;
+        const daily = data.daily;
+
+        // Extract tomorrow's data (CHANGE #1: include new fields)
+        const tomorrowData = {
+          temp_max: daily.temperature_2m_max[1],
+          temp_min: daily.temperature_2m_min[1],
+          precip: daily.precipitation_sum[1],
+          snowfall: daily.snowfall_sum[1],
+          wind_max: daily.windspeed_10m_max[1],
+          weather_code: daily.weathercode[1],
+          precip_prob_max: daily.precipitation_probability_max ? daily.precipitation_probability_max[1] : 0,
+          rain_sum: daily.rain_sum ? daily.rain_sum[1] : 0,
+          showers_sum: daily.showers_sum ? daily.showers_sum[1] : 0,
+          windgusts_10m_max: daily.windgusts_10m_max ? daily.windgusts_10m_max[1] : null,
+          sunshine_duration: daily.sunshine_duration ? daily.sunshine_duration[1] : null
+        };
+
+        if (currentMode === 'event') {
+          // Event market flow
+          const forecastProb = estimateEventProbability(tomorrowData, eventType);
+          const compositeProb = estimateCompositeProbability(tomorrowData, eventType, cityKey);
+
+          // Start with loading states for async models
+          let climatologyProb = 'loading';
+          let nwsProb = 'loading';
+
+          // Initial render with loading states
+          const initialConsensus = renderConsensus(forecastProb, climatologyProb, compositeProb, eventType, nwsProb);
+
+          // Use fallback climatology for initial display
+          const fallbackClimatology = estimateClimatologyProbability(tomorrowData, eventType, cityKey, null);
+          const initialOurProb = (forecastProb + fallbackClimatology + compositeProb) / 3;
+          const impliedProb = generateMockMarketPrice(eventType, cityKey, tomorrowData);
+          const initialEdge = initialOurProb - impliedProb;
+          const initialKelly = kellyBetSize(initialOurProb, impliedProb);
+
+          forecastBadge.textContent = city.name;
+          analysisEventBadge.textContent = eventType.toUpperCase();
+          consensusEventBadge.textContent = eventType.toUpperCase();
+
+          forecastBody.innerHTML = renderForecast(data);
+          consensusBody.innerHTML = initialConsensus.html;
+          marketBody.innerHTML = renderMarket(city.name, eventType, impliedProb, daily.time[1]);
+          analysisBody.innerHTML = renderAnalysis(initialOurProb, impliedProb, initialEdge, initialKelly, eventType);
+
+          // Show hourly precip chart (CHANGE #6)
+          const hourlyChartPanel = document.getElementById('hourly-chart-panel');
+          const hourlyChartContainer = document.getElementById('hourly-chart-container');
+          const hourlyChartBadge = document.getElementById('hourly-chart-badge');
+          const chartHTML = renderHourlyPrecipChart(data);
+          if (chartHTML) {
+            hourlyChartContainer.innerHTML = chartHTML;
+            hourlyChartBadge.textContent = formatDate(daily.time[1]);
+            hourlyChartPanel.style.display = '';
+          } else {
+            hourlyChartPanel.style.display = 'none';
+          }
+
+          // Async: fetch NWS and historical in parallel
+          const asyncUpdater = async () => {
+            const [nwsPeriods, historicalRates] = await Promise.all([
+              fetchNWSForecast(cityKey),
+              fetchHistoricalClimatology(city.lat, city.lon, daily.time[1])
+            ]);
+
+            cachedNWSData = nwsPeriods;
+            cachedHistoricalData = historicalRates;
+
+            // Compute real probabilities
+            const realClimatologyProb = estimateClimatologyProbability(tomorrowData, eventType, cityKey, historicalRates);
+            const realNWSProb = estimateNWSProbability(nwsPeriods, eventType, tomorrowData);
+
+            // Re-render consensus with real values
+            const updatedConsensus = renderConsensus(forecastProb, realClimatologyProb, compositeProb, eventType, realNWSProb);
+
+            const ourProb = updatedConsensus.avg;
+            const edge = ourProb - impliedProb;
+            const kellyAmount = kellyBetSize(ourProb, impliedProb);
+
+            // Only update if we're still on the same view
+            if (currentMode === 'event') {
+              consensusBody.innerHTML = updatedConsensus.html;
+              analysisBody.innerHTML = renderAnalysis(ourProb, impliedProb, edge, kellyAmount, eventType);
+            }
+          };
+
+          // Fire and forget — don't block the main flow
+          asyncUpdater().catch(err => {
+            console.warn('Async model update failed:', err.message);
+          });
+
+        } else {
+          // Temperature bracket flow
+          renderTempView();
+        }
+
+      } catch (err) {
+        const errHTML = `<div class="empty-state"><p style="color:var(--red)">Failed to fetch forecast: ${err.message}</p></div>`;
+        if (currentMode === 'event') {
+          forecastBody.innerHTML = errHTML;
+        } else {
+          document.getElementById('temp-forecast-body').innerHTML = errHTML;
+        }
+      } finally {
+        fetchBtn.classList.remove('loading');
+        fetchBtn.disabled = false;
+      }
+    });
+  </script>
+<script data-pplx-inline-edit>
+(function(){
+  if(window===window.top)return;
+  function inlineAll(orig,clone){
+    if(orig.nodeType!==1)return;
+    try{
+      var cs=getComputedStyle(orig);
+      var t='';
+      for(var i=0;i<cs.length;i++){t+=cs[i]+':'+cs.getPropertyValue(cs[i])+';';}
+      clone.style.cssText=t;
+    }catch(e){}
+    var oc=orig.children,cc=clone.children;
+    for(var j=0;j<oc.length&&j<cc.length;j++){inlineAll(oc[j],cc[j]);}
+  }
+  function stripExternal(clone){
+    var imgs=clone.querySelectorAll('img');
+    for(var i=0;i<imgs.length;i++){
+      var s=imgs[i].getAttribute('src');
+      if(s&&!s.startsWith('data:'))imgs[i].removeAttribute('src');
+    }
+    var all=clone.querySelectorAll('*');
+    for(var i=0;i<all.length;i++){
+      var st=all[i].style.cssText;
+      if(st&&st.indexOf('url(')>=0){
+        all[i].style.cssText=st.replace(/url\(["']?(?!data:)[^)"']*["']?\)/gi,'none');
+      }
+    }
+  }
+  window.addEventListener('message',function(e){
+    if(!e.data||e.data.type!=='INLINE_EDIT_CAPTURE_REQUEST')return;
+    var scrollX=window.scrollX||window.pageXOffset||0;
+    var scrollY=window.scrollY||window.pageYOffset||0;
+    var w=window.innerWidth,h=window.innerHeight;
+    try{
+      var clone=document.documentElement.cloneNode(true);
+      var rm=clone.querySelectorAll('script,link[rel="stylesheet"],style');
+      for(var i=0;i<rm.length;i++){rm[i].remove();}
+      inlineAll(document.documentElement,clone);
+      stripExternal(clone);
+      var html=new XMLSerializer().serializeToString(clone);
+      var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'">'
+        +'<foreignObject width="100%" height="100%">'
+        +'<div xmlns="http://www.w3.org/1999/xhtml" style="width:'+w+'px;height:'+h+'px;overflow:hidden">'
+        +'<div style="transform:translate(-'+scrollX+'px,-'+scrollY+'px);transform-origin:top left">'
+        +html+'</div></div></foreignObject></svg>';
+      var svgUrl='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+      var img=new Image();
+      img.onload=function(){
+        var c=document.createElement('canvas');c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0);
+        window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:c.toDataURL('image/png'),scrollX:scrollX,scrollY:scrollY},'*');
+      };
+      img.onerror=function(){
+        window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:null,scrollX:scrollX,scrollY:scrollY},'*');
+      };
+      img.src=svgUrl;
+    }catch(err){
+      window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:null,scrollX:scrollX,scrollY:scrollY},'*');
+    }
+  });
+})();
+</script></body>
+</html>
